@@ -15,15 +15,17 @@ class TestSafetyController(Node):
         self.declare_parameter("scan_topic", "default")
         self.declare_parameter("drive_topic", "default")
         self.declare_parameter("velocity", 0.0)
-        self.declare_parameter("send_cmds", 0.0)
+        self.declare_parameter("is_stopped", 0.0)
 
         # Fetch constants from the ROS parameter server
         # This is necessary for the tests to be able to test varying parameters!
         self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
         self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
         self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
-        self.SENT = self.get_parameter('send_cmds').get_parameter_value().double_value
+        self.SENT = self.get_parameter('is_stopped').get_parameter_value().double_value
         
+        self.add_on_set_parameters_callback(self.parameters_callback)
+
         self.timer = self.create_timer(0.05, self.on_timer)
         self.safety_sub = self.create_subscription(
             AckermannDriveStamped,
@@ -41,7 +43,6 @@ class TestSafetyController(Node):
             self.STOPPED = 1
 
     def on_timer(self):
-        # if self.SENT < 5:
         if not self.STOPPED:
             drive_msg = AckermannDriveStamped()
             drive_msg.header.stamp = self.get_clock().now().to_msg()
@@ -54,7 +55,6 @@ class TestSafetyController(Node):
             drive_msg.drive.jerk = 0.0 # change as quick as possible        
 
             self.drive_pub.publish(drive_msg)
-            self.SENT += 1
     
     def parameters_callback(self, params):
         """
@@ -64,12 +64,9 @@ class TestSafetyController(Node):
         It's called whenever a parameter is set via 'ros2 param set'.
         """
         for param in params:
-            if param.name == 'velocity':
-                self.VELOCITY = param.value
-                self.get_logger().info(f"Updated velocity to {self.VELOCITY}")
-            if param.name == "send_cmds":
-                self.SENT = 0
-                self.get_logger().info(f"RESET SEND FLAG")
+            if param.name == "is_stopped":
+                self.STOPPED = 0
+                self.get_logger().info(f"RESET STOPPED FLAG")
         return SetParametersResult(successful=True)
 
 

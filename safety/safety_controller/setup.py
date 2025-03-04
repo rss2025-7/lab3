@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import glob 
+import os
 
 package_name = 'safety_controller'
 
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/safety_controller/launch', glob.glob(os.path.join('launch', '*launch.xml'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

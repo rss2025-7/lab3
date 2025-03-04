@@ -10,15 +10,30 @@
 ```
 ros2 launch racecar_simulator simulate.launch.xml
 ```
-2. Start the safety controller with required params:
+### Using Launch Files
+3. Start the safety controller. The default parameters are in the `safety_controller.launch.xml` file
+```
+ros2 launch safety_controller safety_controller.launch.xml
+```
+4. Use "Pose" to point the robot in the direction you want it to drive (it will just go straight in that direction). Ideally, you would point it at a nearby wall.
+5. Start the safety controller test node. The default parameters are in the `test_controller.launch.xml` file
+```
+ros2 launch safety_controller test_controller.launch.xml
+```
+6. Whenever you want to restart the robot, use "Pose" to point the robot in the desired direction then reset the IS_STOPPED parameter for the test_controller node. 0 = not stopped (resetting), 1 = stopped (will not move)
+```
+ros2 param set /test_safety_controller is_stopped 0.0
+```
+### Using ros2 run
+3. Start the safety controller with required params:
     1. scan_topic: Where the robot sends AckermannDrive commands
     2. laser_topic: Where the robot reads LaserScan messages from
     3. drive_topic: Where the robot sends its E-STOP (still AckermannDrive) commands
 ```
 ros2 run safety_controller safety_controller --ros-args -p scan_topic:=/drive -p laser_topic:=/scan -p drive_topic:=/drive
 ```
-3. Use "Pose" to point the robot in the direction you want it to drive (it will just go straight in that direction). Ideally, you would point it at a nearby wall.
-3. Whenever you want to test, start `test_safety_controller`. This will send "go forward" commands until the robot is stopped by the safety controller. You will have to restart the node after it is stopped by the safety controller in order to make the robot start moving again.
+4. Use "Pose" to point the robot in the direction you want it to drive (it will just go straight in that direction). Ideally, you would point it at a nearby wall.
+5. Whenever you want to test, start `test_safety_controller`. This will send "go forward" commands until the robot is stopped by the safety controller. You will have to restart the node after it is stopped by the safety controller in order to make the robot start moving again.
     1. scan_topic: Where the robot reads LaserScan messages from
     2. drive_topic: Where the robot sends its E-STOP commands
     3. velocity: How fast the robot moves forward

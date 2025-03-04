@@ -3,7 +3,6 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from ackermann_msgs.msg import AckermannDriveStamped
-from rcl_interfaces.msg import SetParametersResult
 from sensor_msgs.msg import LaserScan
 
 class SafetyController(Node):
@@ -11,22 +10,18 @@ class SafetyController(Node):
     def __init__(self):
         super().__init__("safety_controller")
         # Declare parameters to make them available for use
-        self.declare_parameter("scan_topic", "default")
+        self.declare_parameter("cmd_topic", "default")
         self.declare_parameter("laser_topic", "default")
         self.declare_parameter("drive_topic", "default")
 
         # Fetch constants from the ROS parameter server
-        self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
+        self.CMD_TOPIC = self.get_parameter('cmd_topic').get_parameter_value().string_value
         self.LASER_TOPIC = self.get_parameter('laser_topic').get_parameter_value().string_value
         self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
-		
-        # This activates the parameters_callback function so that the tests are able
-        # to change the parameters during testing.
-        # self.add_on_set_parameters_callback(self.parameters_callback)
-  
+		  
         self.cmd_sub = self.create_subscription(
             AckermannDriveStamped,
-            self.SCAN_TOPIC,
+            self.CMD_TOPIC,
             self.listener_callback,
             10)
         self.lidar_sub = self.create_subscription(
@@ -78,7 +73,7 @@ class SafetyController(Node):
         ranges_to_check = self.ranges[inds_to_check]
         danger_rating = np.sum(ranges_to_check < min_safe_dist) / float(ranges_to_check.size)
         
-        self.get_logger().info(f"{self.danger_threshold}, {danger_rating}")
+        # self.get_logger().info(f"{self.danger_threshold}, {danger_rating}")
         if danger_rating > self.danger_threshold:
             self.get_logger().info(f"STOPPED!")
             drive_msg = AckermannDriveStamped()
@@ -92,27 +87,6 @@ class SafetyController(Node):
             drive_msg.drive.jerk = 0.0 # set everything else to 0      
 
             self.safety_pub.publish(drive_msg)
-
-    def parameters_callback(self, params):
-        """
-        DO NOT MODIFY THIS CALLBACK FUNCTION!
-        
-        This is used by the test cases to modify the parameters during testing. 
-        It's called whenever a parameter is set via 'ros2 param set'.
-        """
-        pass
-        # for param in params:
-        #     if param.name == 'side':
-        #         self.SIDE = param.value
-        #         self.get_logger().info(f"Updated side to {self.SIDE}")
-        #     elif param.name == 'velocity':
-        #         self.VELOCITY = param.value
-        #         self.get_logger().info(f"Updated velocity to {self.VELOCITY}")
-        #     elif param.name == 'desired_distance':
-        #         self.DESIRED_DISTANCE = param.value
-        #         self.get_logger().info(f"Updated desired_distance to {self.DESIRED_DISTANCE}")
-        # return SetParametersResult(successful=True)
-
 
 def main():
     rclpy.init()

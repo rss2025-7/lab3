@@ -1,0 +1,14 @@
+<launch>
+  <node pkg="safety_controller" exec="safety_controller" name="safety_controller">
+    <param name="cmd_topic" value="/drive" />
+    <param name="laser_topic" value="/scan" />
+    <param name="drive_topic" value="/drive" />
+  </node>
+
+  <!-- Uncomment for the robot TODO NOT UPDATED -->
+  <!-- <node pkg="safety_controller" exec="safety_controller" name="safety_controller">
+    <param name="cmd_topic" value="/drive" />
+    <param name="laser_topic" value="/scan" />
+    <param name="drive_topic" value="/drive" />
+  </node> -->
+</launch>
