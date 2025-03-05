@@ -14,7 +14,7 @@ class TestSafetyController(Node):
         # Declare parameters to make them available for use
         self.declare_parameter("scan_topic", "default")
         self.declare_parameter("drive_topic", "default")
-        self.declare_parameter("velocity", 0.0)
+        self.declare_parameter("velocity", 0.5)
         self.declare_parameter("is_stopped", 0.0)
 
         # Fetch constants from the ROS parameter server

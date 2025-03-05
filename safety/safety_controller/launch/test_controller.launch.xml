@@ -1,8 +1,8 @@
 <launch>
   <node pkg="safety_controller" exec="test_safety_controller" name="test_safety_controller">
-    <param name="scan_topic" value="/drive" />
-    <param name="drive_topic" value="/drive" />
-    <param name="velocity" value="2.0" />
+    <param name="scan_topic" value="/scan" />
+    <param name="drive_topic" value="/vesc/high_level/input/nav_0" />
+    <param name="velocity" value="1.0" />
     <param name="is_stopped" value="0.0" />
   </node>
 </launch>

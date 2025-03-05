@@ -19,11 +19,11 @@ class WallFollower(Node):
         super().__init__("wall_follower")
         # Declare parameters to make them available for use
         # DO NOT MODIFY THIS!
-        self.declare_parameter("scan_topic", "scan")
-        self.declare_parameter("drive_topic", "drive")
+        self.declare_parameter("scan_topic", "/scan")
+        self.declare_parameter("drive_topic", "/vesc/high_level/input/nav0")
         self.declare_parameter("side", 1)
         self.declare_parameter("velocity", 2.0)
-        self.declare_parameter("desired_distance", 1.0)
+        self.declare_parameter("desired_distance", 0.5)
 
         # Fetch constants from the ROS parameter server
         # DO NOT MODIFY THIS! This is necessary for the tests to be able to test varying parameters!
@@ -74,9 +74,13 @@ class WallFollower(Node):
             start_angle = 0.0
             end_angle = 2.0
 
-            self.Kp = 0.3
-            self.Kd = 0.25
+            # 5 -> 3 -> 2.5
+            self.Kp = 2.5
+            self.Kd = 0.5
             self.Ki = 0.0
+            # self.Kp = 0.3
+            # self.Kd = 0.25
+            # self.Ki = 0.0
             cutoff = 7.0
         # self.get_logger().info(f'Side: {self.SIDE}, Cutoff: {cutoff}, Kp: {self.Kp},   Kd: {self.Kd},   Ki: {self.Ki}')
         x, y, m, b = compute_least_squares_line(scan_msg, start_angle, end_angle, cutoff)

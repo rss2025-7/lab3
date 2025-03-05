@@ -1,8 +1,8 @@
 <launch>
   <node pkg="safety_controller" exec="safety_controller" name="safety_controller">
-    <param name="cmd_topic" value="/drive" />
+    <param name="cmd_topic" value="/vesc/low_level/ackermann_cmd" />
     <param name="laser_topic" value="/scan" />
-    <param name="drive_topic" value="/drive" />
+    <param name="drive_topic" value="/vesc/low_level/input/safety" />
   </node>
 
   <!-- Uncomment for the robot TODO NOT UPDATED -->

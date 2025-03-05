@@ -1,6 +1,11 @@
 <launch>
   <!-- Launch the wall follower with parameters -->
   <node pkg="wall_follower" name="wall_follower" exec="wall_follower" output="screen">
-    <param from="$(find-pkg-share wall_follower)/params.yaml"/>
+    <!-- <param from="$(find-pkg-share wall_follower)/params.yaml"/> -->
+    <param name="scan_topic" value="/scan" />
+    <param name="drive_topic" value="/vesc/high_level/input/nav_0" />
+    <param name="side" value="1"/>
+    <param name="velocity" value="1.0" />
+    <param name="desired_distance" value="0.5"/>
   </node>
 </launch>

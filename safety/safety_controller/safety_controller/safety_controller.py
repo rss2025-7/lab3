@@ -40,15 +40,17 @@ class SafetyController(Node):
 
         # PARAMETERS TODO CAN CHANGE
         # Delta time, assumed increment for predicting where robot will be
-        self.DT = 0.5 # in seconds
+        # 0.5 -> 0.25
+        self.DT = 0.25 # in seconds
         # Angle range, range of laserscan data we will scan over
         # rangle calculated as drive_command.steering_angle +/- ang_range
-        self.ang_range = 0.2 # in radians
+        # 0.2 -> 0.15 -> 0.1 -> 0.075
+        self.ang_range = 0.075 # in radians
         # Tolerance, car will stop if predicted distance from wall is <= tolerance
         self.dist_tolerance = 0.25 # in meters
         # Danger threshold, car will stop if this % of range data reads
         # within the dist_ range
-        self.danger_threshold = 0.2 # 20 percent
+        self.danger_threshold = 0.1 # 20 percent
 
     def laser_callback(self, msg):
         # Save most recent laser data

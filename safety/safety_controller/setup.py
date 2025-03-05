@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'safety_controller = safety_controller.safety_controller:main',
             'test_safety_controller = safety_controller.test_safety_controller:main',
+            'test_safety_controller_copy = safety_controller.test_safety_controller_copy:main',
         ],
     },
 )
