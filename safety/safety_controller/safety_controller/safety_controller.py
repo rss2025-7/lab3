@@ -18,7 +18,7 @@ class SafetyController(Node):
         self.CMD_TOPIC = self.get_parameter('cmd_topic').get_parameter_value().string_value
         self.LASER_TOPIC = self.get_parameter('laser_topic').get_parameter_value().string_value
         self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
-		  
+
         self.cmd_sub = self.create_subscription(
             AckermannDriveStamped,
             self.CMD_TOPIC,
@@ -30,10 +30,10 @@ class SafetyController(Node):
             self.laser_callback,
             10)
         self.safety_pub = self.create_publisher(
-            AckermannDriveStamped, 
+            AckermannDriveStamped,
             self.DRIVE_TOPIC,
             10)
-        
+
         # Data to be saved by laser_callback()
         self.angles = np.array([])
         self.ranges = np.array([])
@@ -52,15 +52,16 @@ class SafetyController(Node):
 
     def laser_callback(self, msg):
         # Save most recent laser data
-        self.angles = np.linspace(start=msg.angle_min, 
-            stop=msg.angle_max, 
+        self.angles = np.linspace(start=msg.angle_min,
+            stop=msg.angle_max,
             num=int(np.round((msg.angle_max-msg.angle_min)/msg.angle_increment+1)),
             endpoint=True)
 
         self.ranges = np.array(msg.ranges)
         self.ranges = np.clip(self.ranges, a_min=msg.range_min, a_max=msg.range_max)
-        
+
     def listener_callback(self, msg):
+        self.get_logger().info(f"Entered callback")
         drive_cmd = msg.drive
         drive_ang = drive_cmd.steering_angle
         drive_speed = drive_cmd.speed
@@ -72,7 +73,7 @@ class SafetyController(Node):
                                  (self.angles <= drive_ang + self.ang_range))
         ranges_to_check = self.ranges[inds_to_check]
         danger_rating = np.sum(ranges_to_check < min_safe_dist) / float(ranges_to_check.size)
-        
+
         # self.get_logger().info(f"{self.danger_threshold}, {danger_rating}")
         if danger_rating > self.danger_threshold:
             self.get_logger().info(f"STOPPED!")
@@ -84,7 +85,7 @@ class SafetyController(Node):
             drive_msg.drive.steering_angle_velocity = 0.0 # set everything else to 0
             drive_msg.drive.speed = 0.0 # STOP THE CAR
             drive_msg.drive.acceleration = 0.0 # set everything else to 0
-            drive_msg.drive.jerk = 0.0 # set everything else to 0      
+            drive_msg.drive.jerk = 0.0 # set everything else to 0
 
             self.safety_pub.publish(drive_msg)
 
@@ -98,4 +99,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
