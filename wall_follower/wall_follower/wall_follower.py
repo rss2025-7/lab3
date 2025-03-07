@@ -62,26 +62,30 @@ class WallFollower(Node):
         cutoff = 100.0
         if self.SIDE < 0:
             # start_angle = np.deg2rad(10)
-            start_angle = -2.36
-            end_angle = 0.0
+            start_angle = -2.0
+            end_angle = 0
 
-            self.Kp = 10.0
-            self.Kd = 0.1
+            self.Kp = 2.5
+            self.Kd = 0.5
             self.Ki = 0.0
-            cutoff = 100.0
+            cutoff = 7.0
 
         else:
-            start_angle = 0.0
+            start_angle = 0
             end_angle = 2.0
-
             # 5 -> 3 -> 2.5
             self.Kp = 2.5
             self.Kd = 0.5
             self.Ki = 0.0
+
             # self.Kp = 0.3
             # self.Kd = 0.25
             # self.Ki = 0.0
             cutoff = 7.0
+        # self.Kp = 2.5
+        # self.Kd = 0.5
+        # self.Ki = 0.0
+        # cutoff = 7.0
         # self.get_logger().info(f'Side: {self.SIDE}, Cutoff: {cutoff}, Kp: {self.Kp},   Kd: {self.Kd},   Ki: {self.Ki}')
         x, y, m, b = compute_least_squares_line(scan_msg, start_angle, end_angle, cutoff)
         VisualizationTools.plot_line(x, y, self.line_pub, frame="/laser")

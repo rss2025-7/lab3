@@ -44,8 +44,8 @@ class SafetyController(Node):
         self.DT = 0.25 # in seconds
         # Angle range, range of laserscan data we will scan over
         # rangle calculated as drive_command.steering_angle +/- ang_range
-        # 0.2 -> 0.15 -> 0.1 -> 0.075
-        self.ang_range = 0.075 # in radians
+        # 0.2 -> 0.15 -> 0.1 -> 0.075 -> 0.15 -> .2 -> 0.1
+        self.ang_range = 0.1 # in radians
         # Tolerance, car will stop if predicted distance from wall is <= tolerance
         self.dist_tolerance = 0.25 # in meters
         # Danger threshold, car will stop if this % of range data reads
