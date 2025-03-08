@@ -4,8 +4,8 @@
     <!-- <param from="$(find-pkg-share wall_follower)/params.yaml"/> -->
     <param name="scan_topic" value="/scan" />
     <param name="drive_topic" value="/vesc/high_level/input/nav_0" />
-    <param name="side" value="1"/>
-    <param name="velocity" value="1.0" />
+    <param name="side" value="-1"/>
+    <param name="velocity" value="1.5" />
     <param name="desired_distance" value="0.5"/>
   </node>
 </launch>

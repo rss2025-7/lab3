@@ -7,6 +7,9 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from rcl_interfaces.msg import SetParametersResult
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import Float32
+from matplotlib.animation import FuncAnimation
+import matplotlib.pyplot as plt
 
 from wall_follower.visualization_tools import VisualizationTools
 from .lidar_reading import compute_least_squares_line
@@ -50,6 +53,9 @@ class WallFollower(Node):
         self.drive_publisher_ = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
         self.lidar_subscriber_ = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
 
+        # FOR EVALUATION
+        self.err_publisher_ = self.create_publisher(Float32, "wall_follower_logs", 10)
+
         self.line_pub = self.create_publisher(Marker, self.WALL_TOPIC, 1)
 
     def listener_callback(self, scan_msg):
@@ -63,15 +69,22 @@ class WallFollower(Node):
         if self.SIDE < 0:
             # start_angle = np.deg2rad(10)
             start_angle = -2.0
-            end_angle = 0
+            end_angle = -0.3 #was 0.2
+
+            ####Ultimate Cycle Tuning
+            # Ku = 5.
+            # Pu = 1.3
+            # self.Kp = 0.6*Ku
+            # self.Ki=1.2*Ku/Pu
+            # self.Kd = .0075*Ku*Pu
 
             self.Kp = 2.5
             self.Kd = 0.5
             self.Ki = 0.0
-            cutoff = 7.0
+            cutoff = self.DESIRED_DISTANCE * 10.0
 
         else:
-            start_angle = 0
+            start_angle = 0.
             end_angle = 2.0
             # 5 -> 3 -> 2.5
             self.Kp = 2.5
@@ -133,6 +146,9 @@ class WallFollower(Node):
         #     f"Distance: {distance:.2f}, Error: {error:.2f}, Steering: {steering_angle:.2f}"
         # )
 
+        msg = Float32()
+        msg.data = error
+        self.err_publisher_.publish(msg)
         # TODO: Write your callback functions here
 
     def parameters_callback(self, params):

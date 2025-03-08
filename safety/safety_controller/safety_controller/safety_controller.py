@@ -34,13 +34,17 @@ class SafetyController(Node):
             self.DRIVE_TOPIC,
             10)
 
+        self.prev_cmd = None
+        self.angle_memory = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+        self.weights = [0.1, 0.2, 0.3, 0.4, 0.5]
+
         # Data to be saved by laser_callback()
         self.angles = np.array([])
         self.ranges = np.array([])
 
         # PARAMETERS TODO CAN CHANGE
         # Delta time, assumed increment for predicting where robot will be
-        # 0.5 -> 0.25
+        # 0.5 -> 0.25 -> 0.2
         self.DT = 0.25 # in seconds
         # Angle range, range of laserscan data we will scan over
         # rangle calculated as drive_command.steering_angle +/- ang_range
@@ -63,33 +67,38 @@ class SafetyController(Node):
         self.ranges = np.clip(self.ranges, a_min=msg.range_min, a_max=msg.range_max)
 
     def listener_callback(self, msg):
-        self.get_logger().info(f"Entered callback")
-        drive_cmd = msg.drive
-        drive_ang = drive_cmd.steering_angle
-        drive_speed = drive_cmd.speed
+        if self.prev_cmd is not None:
+            # self.get_logger().info(f"Entered callback")
+            drive_ang = self.prev_cmd.steering_angle
+            drive_speed = self.prev_cmd.speed
 
-        predicted_dist = drive_speed * self.DT
-        min_safe_dist = predicted_dist + self.dist_tolerance
+            self.angle_memory[:-1] = self.angle_memory[1:]
+            self.angle_memory[-1] = drive_ang
+            drive_ang_adj = np.sum(self.angle_memory*self.weights)
 
-        inds_to_check = np.where((self.angles >= drive_ang - self.ang_range) &
-                                 (self.angles <= drive_ang + self.ang_range))
-        ranges_to_check = self.ranges[inds_to_check]
-        danger_rating = np.sum(ranges_to_check < min_safe_dist) / float(ranges_to_check.size)
+            predicted_dist = drive_speed * self.DT
+            min_safe_dist = predicted_dist + self.dist_tolerance
 
-        # self.get_logger().info(f"{self.danger_threshold}, {danger_rating}")
-        if danger_rating > self.danger_threshold:
-            self.get_logger().info(f"STOPPED!")
-            drive_msg = AckermannDriveStamped()
-            drive_msg.header.stamp = self.get_clock().now().to_msg()
-            drive_msg.header.frame_id = "base_link"
+            inds_to_check = np.where((self.angles >= drive_ang_adj - self.ang_range) &
+                                    (self.angles <= drive_ang_adj + self.ang_range))
+            ranges_to_check = self.ranges[inds_to_check]
+            danger_rating = np.sum(ranges_to_check < min_safe_dist) / float(ranges_to_check.size)
 
-            drive_msg.drive.steering_angle = 0.0 # set everything else to 0
-            drive_msg.drive.steering_angle_velocity = 0.0 # set everything else to 0
-            drive_msg.drive.speed = 0.0 # STOP THE CAR
-            drive_msg.drive.acceleration = 0.0 # set everything else to 0
-            drive_msg.drive.jerk = 0.0 # set everything else to 0
+            # self.get_logger().info(f"{self.danger_threshold}, {danger_rating}")
+            if danger_rating > self.danger_threshold:
+                # self.get_logger().info(f"STOPPED!")
+                drive_msg = AckermannDriveStamped()
+                drive_msg.header.stamp = self.get_clock().now().to_msg()
+                drive_msg.header.frame_id = "base_link"
 
-            self.safety_pub.publish(drive_msg)
+                drive_msg.drive.steering_angle = 0.0 # set everything else to 0
+                drive_msg.drive.steering_angle_velocity = 0.0 # set everything else to 0
+                drive_msg.drive.speed = 0.0 # STOP THE CAR
+                drive_msg.drive.acceleration = 0.0 # set everything else to 0
+                drive_msg.drive.jerk = 0.0 # set everything else to 0
+
+                self.safety_pub.publish(drive_msg)
+        self.prev_cmd = msg.drive
 
 def main():
     rclpy.init()

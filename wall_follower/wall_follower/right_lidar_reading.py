@@ -7,6 +7,9 @@ def compute_least_squares_line(
     end_angle: float,
     cutoff
 ):
+    weight = 2
+    weighted_area = 0.2
+
     angle_min = scan_msg.angle_min
     angle_max = scan_msg.angle_max
     angle_inc = scan_msg.angle_increment
@@ -25,25 +28,12 @@ def compute_least_squares_line(
 
     x_points = []
     y_points = []
-    # angles = np.array([angle_min + angle_inc * i for i in range(0, int((angle_max - angle_min)/angle_inc))])
-    # np.append(angles, angle_max)
-    # front_distances = []
-    # front_angles = []
-    # front_x = []
-    # front_y = []
-    # for i in range(len(angles)):
-    #     if angles[i] < 0.03 and angles[i] > -0.03 and ranges[i] <= 2:
-    #         front_distances.append(ranges[i])
-    #         front_angles.append(angles[i])
 
-    # for i in range(len(front_angles)):
-    #     front_x.append(front_angles[i] * np.cos(front_angles[i]))
-    #     front_y.append(front_angles[i] * np.sin(front_angles[i]))
 
     for i in range(start_idx, end_idx):
         r = ranges[i]
-        # 0.0 -> 0.2
-        if not np.isfinite(r) or r <= 0 or r >= cutoff:
+
+        if not np.isfinite(r) or r <= 0.0 or r >= cutoff:
             continue
 
         # Compute the actual angle for this index
@@ -53,12 +43,15 @@ def compute_least_squares_line(
         x = r * np.cos(theta_i)
         y = r * np.sin(theta_i)
 
-        x_points.append(x)
-        y_points.append(y)
+        if i > weighted_area * (start_idx + end_idx):
+            for j in range(weight):
+                x_points.append(x)
+                y_points.append(y)
+        else:
+            x_points.append(x)
+            y_points.append(y)
 
-    # x_points.extend(front_x)
-    # y_points.extend(front_y)
-
+    
     x_arr = np.array(x_points)
     y_arr = np.array(y_points)
 
@@ -68,4 +61,3 @@ def compute_least_squares_line(
         m, b = np.polyfit(x_arr, y_arr, 1)
 
     return x_arr, y_arr, m, b
-
