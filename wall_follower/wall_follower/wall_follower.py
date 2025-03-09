@@ -8,6 +8,7 @@ from visualization_msgs.msg import Marker
 from rcl_interfaces.msg import SetParametersResult
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
+from std_msgs.msg import Float32
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 
@@ -145,6 +146,10 @@ class WallFollower(Node):
         # self.get_logger().info(
         #     f"Distance: {distance:.2f}, Error: {error:.2f}, Steering: {steering_angle:.2f}"
         # )
+
+        msg = Float32()
+        msg.data = error
+        self.err_publisher_.publish(msg)
 
         msg = Float32()
         msg.data = error
