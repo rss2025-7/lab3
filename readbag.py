@@ -1,9 +1,11 @@
 import importlib
 import rosbag2_py
 import rclpy.serialization
+import numpy as np
+import matplotlib.pyplot as plt
 
 # --- Configuration parameters ---
-BAG_DIRECTORY = './rosbag2_2025_03_07-21_16_07'
+BAG_DIRECTORY = './rosbag_data/RP25-D05-d76'
 DESIRED_DISTANCE = 0.0 # really the desired error
 ALPHA = 1         # The alpha parameter used in the score function
 V = 1.5
@@ -39,10 +41,10 @@ def compute_score(bag_path, desired_distance, alpha):
     """
     Reads a ROS2 bag file from the given directory, computes the average loss
     (mean absolute error of the distance values), and then calculates a score.
-    
+
     The loss is defined as:
         loss = (1/N) * sum(|distance_i - desired_distance|)
-        
+
     The score is:
         score = 1 / (1 + (alpha * loss)^2)
     """
@@ -81,6 +83,40 @@ def compute_score(bag_path, desired_distance, alpha):
     print(f"Score: {score}")
     return score
 
+def plot_graphs(bag_paths):
+    """
+    Reads ROS2 bag files from the given directories and plots their errors
+    """
+    for bag_path in bag_paths:
+        storage_options = rosbag2_py.StorageOptions(uri=bag_path, storage_id='sqlite3')
+        converter_options = rosbag2_py.ConverterOptions(
+            input_serialization_format='cdr',
+            output_serialization_format='cdr'
+        )
+
+        reader = rosbag2_py.SequentialReader()
+        reader.open(storage_options, converter_options)
+
+        distances = []
+        while reader.has_next():
+            topic, data, t = reader.read_next()
+            msg = deserialize_message(topic, data)
+            if msg is not None:
+                try:
+                    # For std_msgs.msg.Float32, the float value is stored in 'data'
+                    distances.append(msg.data)
+                except AttributeError:
+                    print(f"Message on topic {topic} does not have a 'data' attribute.")
+
+        if not distances:
+            print("No valid messages found in the bag file.")
+            return None
+        distances = np.array(distances)
+        times = [i for i in range(len(distances))]
+        plt.plot(times, distances)
+    plt.savefig("output_plot.png")
+
 # --- Main execution ---
 if __name__ == '__main__':
-    compute_score(BAG_DIRECTORY, DESIRED_DISTANCE, ALPHA)
+    # compute_score(BAG_DIRECTORY, DESIRED_DISTANCE, ALPHA)
+    plot_graphs(["./rosbag_data/RP25-D05-d76", "./rosbag_data/RP10-D00-d76"])
