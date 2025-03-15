@@ -113,10 +113,38 @@ def plot_graphs(bag_paths):
             return None
         distances = np.array(distances)
         times = [i for i in range(len(distances))]
-        plt.plot(times, distances)
+
+        Kp, Kd, DD = extract_parameters(bag_path)
+        plt.plot(times, distances, label = f"Kp: {Kp}, Kd: {Kd}, Desired Distance: {DD}")
+
+        plt.xlabel("Timestep")
+        plt.ylabel("Error (m)")
+        plt.legend(prop={'size': 'x-small'})
     plt.savefig("output_plot.png")
+
+
+def extract_parameters(path):
+    """
+    Given the rosbag path, get the Kp, Kd, and Desired distance according
+    to our naming convention
+    """
+    tmp = path.split("/")
+    parameters = tmp[-1].split("-")
+    Kp = parameters[0][2] + "." + parameters[0][3:]
+    Kd = parameters[1][1] + "." + parameters[1][2:]
+    DD = parameters[2][1] + "." + parameters[2][2:]
+    return Kp, Kd, DD
 
 # --- Main execution ---
 if __name__ == '__main__':
+    # ros_bag_directories = ["./rosbag_data/LP05-D00-d100", "./rosbag_data/LP10-D00-d100", "./rosbag_data/LP15-D00-d100", "./rosbag_data/LP20-D00-d100", "./rosbag_data/LP25-D00-d100"]
+    ros_bag_directories = ["./rosbag_data/RP03-D025-d100", "./rosbag_data/RP25-D05-d100"]
+    # for BAG_DIRECTORY in ros_bag_directories:
+    #     compute_score(BAG_DIRECTORY, DESIRED_DISTANCE, ALPHA)
     # compute_score(BAG_DIRECTORY, DESIRED_DISTANCE, ALPHA)
-    plot_graphs(["./rosbag_data/RP25-D05-d76", "./rosbag_data/RP10-D00-d76"])
+    plot_graphs(ros_bag_directories)
+    # plot_graphs(["./rosbag2_2025_03_07-21_16_07"])
+    # compute_score("./rosbag2_2025_03_07-20_16_22", DESIRED_DISTANCE, ALPHA)
+
+    # final_directories = ["./rosbag_data/LP03-D025-d76","./rosbag_data/LP03-D025-d100","./rosbag_data/LP03-D025-d128"]
+    # plot_graphs(final_directories)
